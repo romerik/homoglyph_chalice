@@ -1,9 +1,12 @@
+from unittest import result
 import dnstwist
 import os
 import homoglyphs as hg
 import json
 import dask
+import sys
 
+original_stdout = sys.stdout
 
 def genTldsDnstwist(domain):
     """Generate a file and upload to S3 with dnstwist 
@@ -34,8 +37,13 @@ def homoglyphGenerator(domain):
     
     all_result = dask.delayed(getAll)(list_homoglyphs)
 
-    return all_result.compute()
+    result = all_result.compute()
 
+    to_write = {f"{domain}_homoglyphs": result}
+    with open(f"{domain}_homoglyphs.txt", "a+") as file:
+        sys.stdout = file
+        for i in result:
+            print(i)
+        sys.stdout = original_stdout
 
-
-
+    return result
